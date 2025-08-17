@@ -1,3 +1,14 @@
+-- Table des utilisateurs (passagers)
+CREATE TABLE users (
+   id_user SERIAL PRIMARY KEY,
+   nom VARCHAR(250) NOT NULL,
+   prenom VARCHAR(250),
+   date_naissance DATE NOT NULL,
+   login VARCHAR(250) UNIQUE NOT NULL,
+   password VARCHAR(250) NOT NULL
+);
+INSERT INTO users (nom, prenom, date_naissance, login, password) 
+VALUES ('Admin', 'Administrateur', '1990-01-01', 'admin', 'admin');
 
 -- Table des avions
 CREATE TABLE avions (
@@ -6,7 +17,7 @@ CREATE TABLE avions (
    modele VARCHAR(50) NOT NULL,
    nbsiegebusiness INT,
    nbsiegeeco INT,
-   date_creation DATE DEFAULT CURRENT_DATE
+   date_creation DATE
 );
 
 -- Table des villes
@@ -32,17 +43,7 @@ CREATE TABLE vols (
    fin_reservation TIMESTAMP                  -- date limite pour réserver
 );
 
--- Table des utilisateurs (passagers)
-CREATE TABLE users (
-   id_user SERIAL PRIMARY KEY,
-   nom VARCHAR(250) NOT NULL,
-   prenom VARCHAR(250),
-   date_naissance DATE NOT NULL,
-   login VARCHAR(250) UNIQUE NOT NULL,
-   password VARCHAR(250) NOT NULL
-);
-INSERT INTO users (nom, prenom, date_naissance, login, password) 
-VALUES ('Admin', 'Administrateur', '1990-01-01', 'admin', 'admin');
+
 
 -- Table des sièges
 CREATE TABLE sieges (
@@ -125,3 +126,19 @@ CREATE TRIGGER trigger_date_fin_annulation
 BEFORE INSERT OR UPDATE ON reservations
 FOR EACH ROW
 EXECUTE FUNCTION set_date_fin_annulation();
+
+INSERT INTO villes (nom) VALUES
+('Antananarivo'),
+('Toamasina'),
+('Mahajanga'),
+('Toliara'),
+('Fianarantsoa'),
+('Antsiranana'),
+('Nosy Be'),
+('Morondava'),
+('Sambava'),
+('Fort-Dauphin');
+INSERT INTO avions (numero, modele, nbsiegebusiness, nbsiegeeco, date_creation) VALUES
+('MG-001', 'Boeing 737', 12, 120, '2023-01-15'),
+('MG-002', 'Airbus A320', 16, 150, '2023-03-10'),
+('MG-003', 'Embraer E190', 8, 90, '2023-05-20');
