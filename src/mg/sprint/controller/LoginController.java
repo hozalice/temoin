@@ -2,12 +2,16 @@ package mg.sprint.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 import mg.itu.prom16.annotations.*;
 import mg.itu.prom16.map.ModelView;
 import mg.sprint.model.User;
+import mg.sprint.model.Vol;
+import mg.sprint.model.Ville;
+import mg.sprint.model.Avion;
 
 @Annotation_controlleur
 public class LoginController {
@@ -37,6 +41,15 @@ public class LoginController {
             mv = new ModelView("/accueil.jsp");
             mv.addObject("message", "Connexion réussie !");
             mv.addObject("login", login);
+
+            // Récupérer les vols pour l'affichage
+            List<Vol> vols = Vol.getAllVols();
+            List<Ville> villes = Vol.getAllVilles();
+            List<Avion> avions = Vol.getAllAvions();
+
+            mv.addObject("vols", vols);
+            mv.addObject("villes", villes);
+            mv.addObject("avions", avions);
         } else {
             // Connexion échouée
             mv = new ModelView("/login.jsp");
