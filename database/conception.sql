@@ -1,3 +1,7 @@
+-- ================================
+-- TABLES DE BASE
+-- ================================
+
 -- Table des utilisateurs (passagers)
 CREATE TABLE users (
    id_user SERIAL PRIMARY KEY,
@@ -7,6 +11,7 @@ CREATE TABLE users (
    login VARCHAR(250) UNIQUE NOT NULL,
    password VARCHAR(250) NOT NULL
 );
+
 INSERT INTO users (nom, prenom, date_naissance, login, password) 
 VALUES ('Admin', 'Administrateur', '1990-01-01', 'admin', 'admin');
 
@@ -37,34 +42,52 @@ CREATE TABLE vols (
    id_avion INT NOT NULL REFERENCES avions(id_avion),
    prix_eco NUMERIC(10,2) NOT NULL,           -- prix d'un siège éco
    prix_business NUMERIC(10,2) NOT NULL,      -- prix d'un siège business
-   nb_siege_promo_eco INT DEFAULT 0,          -- nombre de sièges éco en promotion
-   nb_siege_promo_business INT DEFAULT 0,     -- nombre de sièges business en promotion
-   reduction_promo NUMERIC(5,2) DEFAULT 0,   -- pourcentage de réduction
    fin_reservation TIMESTAMP                  -- date limite pour réserver
 );
 
+-- ================================
+-- TABLES AJOUTÉES DE LA NOUVELLE CONCEPTION
+-- ================================
 
-
--- Table des sièges
-CREATE TABLE sieges (
-   id_siege SERIAL PRIMARY KEY,
-   numero VARCHAR(10) NOT NULL,        -- ex : "12A"
-   classe VARCHAR(50) NOT NULL,        -- eco / business
-   id_avion INT NOT NULL REFERENCES avions(id_avion)
+-- Table des promotions
+CREATE TABLE promotion (
+   id_promotion SERIAL PRIMARY KEY,
+   daty DATE,
+   pourcentage_reduction_prix VARCHAR(50) NOT NULL,
+   nb_siege VARCHAR(50) NOT NULL,
+   id_vol INT NOT NULL REFERENCES vols(id_vol)
 );
 
--- Table des réservations
+-- Type de sièges associés à une promotion
+CREATE TABLE typesiege (
+   id_typesiege SERIAL PRIMARY KEY,
+   type VARCHAR(50) NOT NULL,
+   id_promotion INT NOT NULL REFERENCES promotion(id_promotion)
+);
+
+-- ================================
+-- TABLE DES RESERVATIONS
+-- ================================
+
 CREATE TABLE reservations (
    id_reservation SERIAL PRIMARY KEY,
    date_reservation DATE DEFAULT CURRENT_DATE,
    statut VARCHAR(50) DEFAULT 'confirmée',
+   nom VARCHAR(250) NOT NULL,
+   prenom VARCHAR(250) NOT NULL,
+   passeport VARCHAR(250) NOT NULL,       -- ajouté depuis nouvelle conception
    classe VARCHAR(50) NOT NULL,           -- eco / business
    siege_attribue VARCHAR(50),
-   prix NUMERIC(10,2) NOT NULL,          -- prix du billet
+   prix NUMERIC(10,2) NOT NULL,           -- prix du billet
    id_vol INT NOT NULL REFERENCES vols(id_vol),
    id_user INT NOT NULL REFERENCES users(id_user),
-   date_fin_annulation TIMESTAMP          -- date limite pour annuler
+   id_typesiege INT REFERENCES typesiege(id_typesiege), -- lien avec type siège promo
+   date_fin_annulation TIMESTAMP
 );
+
+-- ================================
+-- PARAMÉTRAGES
+-- ================================
 
 -- Table de paramétrage du délai minimum pour une réservation
 CREATE TABLE parametrage_heure_reservation (
@@ -76,6 +99,10 @@ CREATE TABLE parametrage_annulation_reservation (
     delai_max_heures INT NOT NULL DEFAULT 2  -- nombre d'heures maximum avant le vol pour annuler
 );
 
+-- ================================
+-- FONCTIONS & TRIGGERS
+-- ================================
+
 -- Fonction pour calculer fin_reservation sur vols
 CREATE OR REPLACE FUNCTION set_fin_reservation()
 RETURNS TRIGGER AS $$
@@ -83,9 +110,8 @@ DECLARE
     delai INT;
 BEGIN
     SELECT delai_min_heures INTO delai FROM parametrage_heure_reservation LIMIT 1;
-
     IF delai IS NULL THEN
-        delai := 2;  -- valeur par défaut si pas de paramétrage
+        delai := 2;
     END IF;
 
     NEW.fin_reservation := NEW.date_heure_depart - (delai * INTERVAL '1 hour');
@@ -106,16 +132,13 @@ DECLARE
     delai INT;
     vol_depart TIMESTAMP;
 BEGIN
-    -- on récupère le délai depuis la table de paramétrage annulation
     SELECT delai_max_heures INTO delai FROM parametrage_annulation_reservation LIMIT 1;
     IF delai IS NULL THEN
-        delai := 2;  -- valeur par défaut
+        delai := 2;
     END IF;
 
-    -- on récupère la date de départ du vol
     SELECT date_heure_depart INTO vol_depart FROM vols WHERE id_vol = NEW.id_vol;
 
-    -- calcul automatique de la date limite d'annulation
     NEW.date_fin_annulation := vol_depart - (delai * INTERVAL '1 hour');
     RETURN NEW;
 END;
@@ -126,6 +149,10 @@ CREATE TRIGGER trigger_date_fin_annulation
 BEFORE INSERT OR UPDATE ON reservations
 FOR EACH ROW
 EXECUTE FUNCTION set_date_fin_annulation();
+
+-- ================================
+-- INSERTIONS DE BASE
+-- ================================
 
 INSERT INTO villes (nom) VALUES
 ('Antananarivo'),
@@ -138,6 +165,7 @@ INSERT INTO villes (nom) VALUES
 ('Morondava'),
 ('Sambava'),
 ('Fort-Dauphin');
+
 INSERT INTO avions (numero, modele, nbsiegebusiness, nbsiegeeco, date_creation) VALUES
 ('MG-001', 'Boeing 737', 12, 120, '2023-01-15'),
 ('MG-002', 'Airbus A320', 16, 150, '2023-03-10'),

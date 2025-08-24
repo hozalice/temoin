@@ -49,16 +49,9 @@ public class Vol {
     @NotNull
     private Double prixBusiness;
 
-    @ParamField("nb_siege_promo_eco")
-    @IntType
-    private int nbSiegePromoEco;
-
-    @ParamField("nb_siege_promo_business")
-    @IntType
-    private int nbSiegePromoBusiness;
-
-    @ParamField("reduction_promo")
-    private Double reductionPromo;
+    @ParamField("fin_reservation")
+    @TimestampType
+    private Timestamp finReservation;
 
     // Propriétés pour l'affichage (non persistées)
     @ParamField("nom_ville_depart")
@@ -71,9 +64,6 @@ public class Vol {
     // Constructeur par défaut
     public Vol() {
         this.statut = "prevu";
-        this.nbSiegePromoEco = 0;
-        this.nbSiegePromoBusiness = 0;
-        this.reductionPromo = Double.valueOf(0);
     }
 
     // Constructeur avec paramètres principaux
@@ -87,9 +77,6 @@ public class Vol {
         this.prixEco = prixEco;
         this.prixBusiness = prixBusiness;
         this.statut = "prévu";
-        this.nbSiegePromoEco = 0;
-        this.nbSiegePromoBusiness = 0;
-        this.reductionPromo = Double.valueOf(0);
     }
 
     // ========== FONCTIONS DAO (CRUD) ==========
@@ -100,9 +87,8 @@ public class Vol {
             Connexion connexion = Connexion.getInstance();
             String sql = """
                     INSERT INTO vols (id_ville_depart, id_ville_arrivee, date_heure_depart,
-                    date_heure_arrivee, statut, id_avion, prix_eco, prix_business,
-                    nb_siege_promo_eco, nb_siege_promo_business, reduction_promo)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    date_heure_arrivee, statut, id_avion, prix_eco, prix_business)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """;
 
             try (Connection conn = connexion.getConnection();
@@ -116,9 +102,6 @@ public class Vol {
                 pstmt.setInt(6, vol.getIdAvion());
                 pstmt.setDouble(7, vol.getPrixEco());
                 pstmt.setDouble(8, vol.getPrixBusiness());
-                pstmt.setInt(9, vol.getNbSiegePromoEco());
-                pstmt.setInt(10, vol.getNbSiegePromoBusiness());
-                pstmt.setDouble(11, vol.getReductionPromo());
                 System.out.println("---------------------insertion---------------------");
                 System.out.println(vol.getIdVilleDepart());
                 System.out.println(vol.getIdVilleArrivee());
@@ -128,9 +111,6 @@ public class Vol {
                 System.out.println(vol.getIdAvion());
                 System.out.println(vol.getPrixEco());
                 System.out.println(vol.getPrixBusiness());
-                System.out.println(vol.getNbSiegePromoEco());
-                System.out.println(vol.getNbSiegePromoBusiness());
-                System.out.println(vol.getReductionPromo());
                 int rowsAffected = pstmt.executeUpdate();
                 System.out.println("Vol inséré avec succès! Lignes affectées: " + rowsAffected);
                 return rowsAffected > 0;
@@ -170,9 +150,7 @@ public class Vol {
                     vol.setIdAvion(rs.getInt("id_avion"));
                     vol.setPrixEco(rs.getDouble("prix_eco"));
                     vol.setPrixBusiness(rs.getDouble("prix_business"));
-                    vol.setNbSiegePromoEco(rs.getInt("nb_siege_promo_eco"));
-                    vol.setNbSiegePromoBusiness(rs.getInt("nb_siege_promo_business"));
-                    vol.setReductionPromo(rs.getDouble("reduction_promo"));
+                    vol.setFinReservation(rs.getTimestamp("fin_reservation"));
 
                     // Propriétés d'affichage
                     vol.setNomVilleDepart(rs.getString("nom_ville_depart"));
@@ -221,9 +199,7 @@ public class Vol {
                     vol.setIdAvion(rs.getInt("id_avion"));
                     vol.setPrixEco(rs.getDouble("prix_eco"));
                     vol.setPrixBusiness(rs.getDouble("prix_business"));
-                    vol.setNbSiegePromoEco(rs.getInt("nb_siege_promo_eco"));
-                    vol.setNbSiegePromoBusiness(rs.getInt("nb_siege_promo_business"));
-                    vol.setReductionPromo(rs.getDouble("reduction_promo"));
+                    vol.setFinReservation(rs.getTimestamp("fin_reservation"));
 
                     // Propriétés d'affichage
                     vol.setNomVilleDepart(rs.getString("nom_ville_depart"));
@@ -249,8 +225,7 @@ public class Vol {
                     UPDATE vols SET
                     id_ville_depart = ?, id_ville_arrivee = ?, date_heure_depart = ?,
                     date_heure_arrivee = ?, statut = ?, id_avion = ?, prix_eco = ?,
-                    prix_business = ?, nb_siege_promo_eco = ?, nb_siege_promo_business = ?,
-                    reduction_promo = ?
+                    prix_business = ?
                     WHERE id_vol = ?
                     """;
 
@@ -265,10 +240,7 @@ public class Vol {
                 pstmt.setInt(6, vol.getIdAvion());
                 pstmt.setDouble(7, vol.getPrixEco());
                 pstmt.setDouble(8, vol.getPrixBusiness());
-                pstmt.setInt(9, vol.getNbSiegePromoEco());
-                pstmt.setInt(10, vol.getNbSiegePromoBusiness());
-                pstmt.setDouble(11, vol.getReductionPromo());
-                pstmt.setInt(12, vol.getIdVol());
+                pstmt.setInt(9, vol.getIdVol());
 
                 int rowsAffected = pstmt.executeUpdate();
                 System.out.println("Vol mis à jour avec succès! Lignes affectées: " + rowsAffected);
@@ -428,28 +400,12 @@ public class Vol {
         this.prixBusiness = prixBusiness;
     }
 
-    public int getNbSiegePromoEco() {
-        return nbSiegePromoEco;
+    public Timestamp getFinReservation() {
+        return finReservation;
     }
 
-    public void setNbSiegePromoEco(int nbSiegePromoEco) {
-        this.nbSiegePromoEco = nbSiegePromoEco;
-    }
-
-    public int getNbSiegePromoBusiness() {
-        return nbSiegePromoBusiness;
-    }
-
-    public void setNbSiegePromoBusiness(int nbSiegePromoBusiness) {
-        this.nbSiegePromoBusiness = nbSiegePromoBusiness;
-    }
-
-    public Double getReductionPromo() {
-        return reductionPromo;
-    }
-
-    public void setReductionPromo(Double reductionPromo) {
-        this.reductionPromo = reductionPromo;
+    public void setFinReservation(Timestamp finReservation) {
+        this.finReservation = finReservation;
     }
 
     // Getters et Setters pour les propriétés d'affichage
