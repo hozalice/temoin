@@ -94,6 +94,13 @@
         .required {
             color: #e74c3c;
         }
+        .form-help {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -188,20 +195,10 @@
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-col">
-                    <label for="nb_siege_promo_eco">Sièges promo Éco</label>
-                    <input type="number" id="nb_siege_promo_eco" name="nb_siege_promo_eco" min="0" value="0">
-                </div>
-                <div class="form-col">
-                    <label for="nb_siege_promo_business">Sièges promo Business</label>
-                    <input type="number" id="nb_siege_promo_business" name="nb_siege_promo_business" min="0" value="0">
-                </div>
-            </div>
-
             <div class="form-group">
-                <label for="reduction_promo">Réduction promotionnelle (%)</label>
-                <input type="number" id="reduction_promo" name="reduction_promo" step="0.01" min="0" max="100" value="0">
+                <label for="fin_reservation">Date limite de réservation</label>
+                <input type="datetime-local" id="fin_reservation" name="fin_reservation">
+                <small class="form-help">Laissé vide pour calcul automatique (2h avant le départ)</small>
             </div>
 
             <div class="actions">

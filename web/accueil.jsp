@@ -251,6 +251,8 @@
 
         <div class="actions">
             <a href="vol-form" class="btn btn-primary">✈️ Nouveau Vol</a>
+            <a href="promotions" class="btn btn-primary" style="background-color: #FF6B35;">🎯 Gérer les Promotions</a>
+            <a href="parametrages" class="btn btn-primary" style="background-color:rgb(104, 67, 239);">🎯 Gérer les Paramètres</a>
             <a href="form" class="btn btn-secondary">📝 Formulaire étudiant</a>
             <a href="etudiant" class="btn btn-secondary">👥 Gestion étudiants</a>
             <a href="#" class="btn btn-secondary">⚙️ Paramètres</a>

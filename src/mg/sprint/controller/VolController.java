@@ -86,7 +86,6 @@ public class VolController {
                 System.out.println(vol.getStatut());
                 System.out.println(vol.getPrixEco());
                 System.out.println(vol.getPrixBusiness());
-                System.out.println(vol.getNbSiegePromoBusiness());
 
                 if (vol.getIdVilleDepart() == vol.getIdVilleArrivee()) {
                     mv = new ModelView("/vol-form.jsp");
