@@ -1,10 +1,8 @@
 package mg.sprint.controller;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.Part;
 import mg.itu.prom16.annotations.*;
 import mg.itu.prom16.map.ModelView;
 import mg.sprint.model.Etudiant;
@@ -17,16 +15,22 @@ public class EtudiantController {
     public ModelView testValidation(@ParamObject Etudiant etudiant, HttpServletRequest request) {
         ModelView mv;
 
-        // Récupérer les erreurs de validation ajoutées par le framework
-        Map<String, String> fieldErrors = (Map<String, String>) request.getAttribute("fieldErrors");
-        Map<String, String> formData = (Map<String, String>) request.getAttribute("formData");
+        // Le framework ne fournit pas HttpServletRequest pour les paramètres non
+        // annotés.
+        // On protège donc l'accès aux attributs de requête.
+        Map<String, String> fieldErrors = null;
+        Map<String, String> formData = null;
+        if (request != null) {
+            fieldErrors = (Map<String, String>) request.getAttribute("fieldErrors");
+            formData = (Map<String, String>) request.getAttribute("formData");
+        }
 
         if (fieldErrors != null && !fieldErrors.isEmpty()) {
             // Si des erreurs existent, retourner au formulaire avec les erreurs et les
             // données saisies
             mv = new ModelView("/form.jsp");
-            mv.addObject("fieldErrors", fieldErrors); // Ajouter les erreurs au modèle
-            mv.addObject("formData", formData); // Ajouter les données saisies au modèle
+            mv.addObject("fieldErrors", fieldErrors);
+            mv.addObject("formData", formData);
         } else {
             // Si pas d'erreurs, continuer avec la logique normale
             mv = new ModelView("/affichage.jsp");

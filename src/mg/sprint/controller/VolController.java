@@ -21,18 +21,18 @@ public class VolController {
     @Url("vols")
     public ModelView listVols() {
         ModelView mv = new ModelView("/accueil.jsp");
-        
+
         // Récupérer tous les vols avec les informations des villes et avions
         List<Vol> vols = Vol.getAllVols();
         mv.addObject("vols", vols);
-        
+
         // Récupérer les listes pour les formulaires
         List<Ville> villes = Vol.getAllVilles();
         List<Avion> avions = Vol.getAllAvions();
-        
+
         mv.addObject("villes", villes);
         mv.addObject("avions", avions);
-        
+
         return mv;
     }
 
@@ -41,57 +41,93 @@ public class VolController {
     @Url("vol-form")
     public ModelView showVolForm() {
         ModelView mv = new ModelView("/vol-form.jsp");
-        
+
         // Récupérer les listes pour les listes déroulantes
         List<Ville> villes = Vol.getAllVilles();
         List<Avion> avions = Vol.getAllAvions();
-        
+
         mv.addObject("villes", villes);
         mv.addObject("avions", avions);
-        
+
         return mv;
     }
 
     // Insérer un nouveau vol
     @Annotation_Post
     @Url("vol-insert")
-    public ModelView insertVol(@ParamObject Vol vol) {
-        ModelView mv = new ModelView("/accueil.jsp");
-        
-        try {
-            // Validation basique
-            if (vol.getIdVilleDepart() == vol.getIdVilleArrivee()) {
-                mv.addObject("errorMessage", "La ville de départ et d'arrivée ne peuvent pas être identiques");
-                return mv;
-            }
-            
-            if (vol.getDateHeureDepart().after(vol.getDateHeureArrivee())) {
-                mv.addObject("errorMessage", "La date de départ doit être antérieure à la date d'arrivée");
-                return mv;
-            }
-            
-            // Insérer le vol
-            boolean success = Vol.insertVol(vol);
-            
-            if (success) {
-                mv.addObject("successMessage", "Vol créé avec succès !");
-            } else {
-                mv.addObject("errorMessage", "Erreur lors de la création du vol");
-            }
-            
-        } catch (Exception e) {
-            mv.addObject("errorMessage", "Erreur: " + e.getMessage());
+    public ModelView insertVol(@ParamObject Vol vol, HttpServletRequest request) {
+        ModelView mv;
+
+        // Le framework ne fournit pas HttpServletRequest pour les paramètres non
+        // annotés.
+        // On protège donc l'accès aux attributs de requête.
+        Map<String, String> fieldErrors = null;
+        Map<String, String> formData = null;
+        if (request != null) {
+            fieldErrors = (Map<String, String>) request.getAttribute("fieldErrors");
+            formData = (Map<String, String>) request.getAttribute("formData");
         }
-        
-        // Récupérer la liste mise à jour
+
+        if (fieldErrors != null && !fieldErrors.isEmpty()) {
+            // Si des erreurs existent, retourner au formulaire avec les erreurs et les
+            // données saisies
+            mv = new ModelView("/form.jsp");
+            mv.addObject("fieldErrors", fieldErrors);
+            mv.addObject("formData", formData);
+        } else {
+            try {
+                // Validation métier (exemple : villes différentes, date cohérente)
+                System.out.println("----------------------------------------");
+                System.out.println(vol.getIdAvion());
+                System.out.println(vol.getIdVilleDepart());
+                System.out.println(vol.getIdVilleArrivee());
+                System.out.println(vol.getDateHeureDepart() + "itoooooooooo");
+                System.out.println(vol.getDateHeureArrivee() + "itaooooooooo");
+                System.out.println(vol.getStatut());
+                System.out.println(vol.getPrixEco());
+                System.out.println(vol.getPrixBusiness());
+                System.out.println(vol.getNbSiegePromoBusiness());
+
+                if (vol.getIdVilleDepart() == vol.getIdVilleArrivee()) {
+                    mv = new ModelView("/vol-form.jsp");
+                    mv.addObject("errorMessage", "La ville de départ et d'arrivée ne peuvent pas être identiques");
+                    return mv;
+                }
+
+                if (vol.getDateHeureDepart().after(vol.getDateHeureArrivee())) {
+                    mv = new ModelView("/vol-form.jsp");
+                    mv.addObject("errorMessage", "La date de départ doit être antérieure à la date d'arrivée");
+                    return mv;
+                }
+                boolean success;
+                // Insertion
+                try {
+                    success = Vol.insertVol(vol);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println(e.getMessage());
+                }
+
+                mv = new ModelView("/accueil.jsp");
+
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                mv = new ModelView("/vol-form.jsp");
+                System.out.println();
+                mv.addObject("errorMessage", "Erreur: " + e.getMessage());
+            }
+        }
+
+        // Ajouter les listes nécessaires (villes, avions, vols)
         List<Vol> vols = Vol.getAllVols();
         List<Ville> villes = Vol.getAllVilles();
         List<Avion> avions = Vol.getAllAvions();
-        
+
         mv.addObject("vols", vols);
         mv.addObject("villes", villes);
         mv.addObject("avions", avions);
-        
+
         return mv;
     }
 
@@ -100,7 +136,7 @@ public class VolController {
     @Url("vol-edit")
     public ModelView editVol(@Param("id") int idVol) {
         ModelView mv = new ModelView("/vol-edit.jsp");
-        
+
         // Récupérer le vol à modifier
         Vol vol = Vol.getVolById(idVol);
         if (vol == null) {
@@ -108,15 +144,15 @@ public class VolController {
             mv.addObject("errorMessage", "Vol non trouvé");
             return mv;
         }
-        
+
         // Récupérer les listes pour les listes déroulantes
         List<Ville> villes = Vol.getAllVilles();
         List<Avion> avions = Vol.getAllAvions();
-        
+
         mv.addObject("vol", vol);
         mv.addObject("villes", villes);
         mv.addObject("avions", avions);
-        
+
         return mv;
     }
 
@@ -125,41 +161,41 @@ public class VolController {
     @Url("vol-update")
     public ModelView updateVol(@ParamObject Vol vol) {
         ModelView mv = new ModelView("/accueil.jsp");
-        
+
         try {
             // Validation basique
             if (vol.getIdVilleDepart() == vol.getIdVilleArrivee()) {
                 mv.addObject("errorMessage", "La ville de départ et d'arrivée ne peuvent pas être identiques");
                 return mv;
             }
-            
+
             if (vol.getDateHeureDepart().after(vol.getDateHeureArrivee())) {
                 mv.addObject("errorMessage", "La date de départ doit être antérieure à la date d'arrivée");
                 return mv;
             }
-            
+
             // Mettre à jour le vol
             boolean success = Vol.updateVol(vol);
-            
+
             if (success) {
                 mv.addObject("successMessage", "Vol modifié avec succès !");
             } else {
                 mv.addObject("errorMessage", "Erreur lors de la modification du vol");
             }
-            
+
         } catch (Exception e) {
             mv.addObject("errorMessage", "Erreur: " + e.getMessage());
         }
-        
+
         // Récupérer la liste mise à jour
         List<Vol> vols = Vol.getAllVols();
         List<Ville> villes = Vol.getAllVilles();
         List<Avion> avions = Vol.getAllAvions();
-        
+
         mv.addObject("vols", vols);
         mv.addObject("villes", villes);
         mv.addObject("avions", avions);
-        
+
         return mv;
     }
 
@@ -168,30 +204,30 @@ public class VolController {
     @Url("vol-delete")
     public ModelView deleteVol(@Param("id") int idVol) {
         ModelView mv = new ModelView("/accueil.jsp");
-        
+
         try {
             // Supprimer le vol
             boolean success = Vol.deleteVol(idVol);
-            
+
             if (success) {
                 mv.addObject("successMessage", "Vol annulé avec succès !");
             } else {
                 mv.addObject("errorMessage", "Erreur lors de l'annulation du vol");
             }
-            
+
         } catch (Exception e) {
             mv.addObject("errorMessage", "Erreur: " + e.getMessage());
         }
-        
+
         // Récupérer la liste mise à jour
         List<Vol> vols = Vol.getAllVols();
         List<Ville> villes = Vol.getAllVilles();
         List<Avion> avions = Vol.getAllAvions();
-        
+
         mv.addObject("vols", vols);
         mv.addObject("villes", villes);
         mv.addObject("avions", avions);
-        
+
         return mv;
     }
 }
